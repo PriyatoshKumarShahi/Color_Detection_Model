@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Colour Detection Model - Teachable Machine</title>
+    <link rel="stylesheet" href="style.css" />
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(135deg, #004C71, #026888, #17938E, #67C8A1);
+        color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        transition: background-color 0.3s ease, background 0.3s ease, color 0.3s ease;
+      }
+
+      body.dark-mode {
+        background: #121212;
+        color: #f0f0f0;
+      }
+
+      /* Navbar styles */
+      .navbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 30px;
+        background-color: rgba(0, 0, 0, 0.4);
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+
+      .navbar .logo {
+        font-size: 2rem;
+        color: #ffcc80;
+        font-weight: bold;
+        letter-spacing: 3px;
+        text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+      }
+
+      .navbar .info-icon {
+        font-size: 1.7rem;
+        cursor: pointer;
+        color: #ffffff;
+        transition: color 0.3s ease;
+      }
+
+      .navbar .info-icon:hover {
+        color: #ffcc80;
+      }
+
+      .main-content {
+        padding: 20px;
+      }
+
+      .main-heading h1 {
+        text-align: center;
+        color: #fff;
+        font-size: 3rem;
+        margin-top: 2rem;
+        text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
+      }
+
+      .sub-heading p {
+        text-align: center;
+        font-size: 1.5rem;
+        color: #e0f7fa;
+        font-style: italic;
+        margin-bottom: 1.5rem;
+      }
+
+      .main-para {
+        margin: 2rem auto;
+        width: 60%;
+        text-align: center;
+        font-size: 1.2rem;
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      .main-para b {
+        color: #ffcc80;
+      }
+
+      .model-btn {
+        text-align: center;
+        margin-top: 1.5rem;
+      }
+
+      .model-btn button {
+        background-color: #ffcc80;
+        color: #004C71;
+        padding: 12px 25px;
+        font-size: 1.2rem;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      .model-btn button:hover {
+        background-color: #ffb74d;
+      }
+
+      .model-btn a {
+        color: #004C71;
+        text-decoration: none;
+      }
+
+      .dark-mode .model-btn button {
+        background-color: #e0e0e0;
+        color: #121212;
+      }
+
+      .dark-mode .model-btn button:hover {
+        background-color: #ffb74d;
+      }
+
+      /* Animation for the instructions section */
+      .instructions {
+        width: 60%;
+        margin: 2rem auto;
+        text-align: left;
+        transition: max-height 1s ease-in-out;
+        overflow: hidden;
+        max-height: none; /* Always visible */
+        transform: translateY(-100%);
+        opacity: 0;
+        transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+      }
+
+      .instructions.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      .instructions h2 {
+        font-size: 2rem;
+        color: #fff;
+        text-align: center;
+        margin-bottom: 1rem;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+      }
+
+      .rules {
+        background-color: rgba(255, 255, 255, 0.15);
+        padding: 20px;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .rules p {
+        margin-bottom: 10px;
+        color: #e0f7fa;
+      }
+
+      .rules p::before {
+        content: '☑️';
+        margin-right: 10px;
+        color: rgb(6, 6, 6);
+      }
+
+      .footer {
+        text-align: center;
+        padding: 10px 0;
+        border-top: 2px solid gray;
+        color: #e0f7fa;
+        font-size: 1rem;
+        margin-top: 36px;
+        box-shadow: 0 -3px 5px rgba(0, 0, 0, 0.1);
+      }
+
+      .footer p {
+        margin-bottom: 5px;
+      }
+
+      .toggle-btn {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        background-color: #333;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      .dark-mode .toggle-btn {
+        background-color: #f0f0f0;
+        color: #333;
+      }
+      .toggle-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #333;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  z-index: 1100; /* Ensures the button stays above the navbar */
+}
+
+.dark-mode .toggle-btn {
+  background-color: #f0f0f0;
+  color: #333;
+}
+/* Navbar styles */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background-color: rgba(0, 0, 0, 0.4);
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* Higher priority than main content */
+}
+
+.navbar .logo {
+  font-size: 2rem;
+  color: #ffcc80;
+  font-weight: bold;
+  letter-spacing: 3px;
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.navbar .info-icon {
+  font-size: 1.7rem;
+  cursor: pointer;
+  color: #ffffff;
+  transition: color 0.3s ease;
+  z-index: 1001; /* Slightly above the navbar */
+}
+
+.navbar .info-icon:hover {
+  color: #ffcc80;
+}
+
+/* Dark mode button */
+.toggle-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #333;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  z-index: 1100; /* Above the navbar and other elements */
+}
+
+.dark-mode .toggle-btn {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+    </style>
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="logo">Vectors</div>
+      <div class="info-icon" onclick="toggleInstructions()"><a href="info.html">ℹ️</a></div>
+    </nav>
+
+    <button class="toggle-btn">🌙 Dark Mode</button>
+
+    <div class="main-content">
+      <div class="main-heading">
+        <h1>Colour Detection Model</h1>
+      </div>
+      <div class="sub-heading">
+        <p>"See the world full of Colours"</p>
+      </div>
+      <main>
+        <div class="main-para">
+          <p>
+            Our color detection model is created for <b>Colorblind users</b> to
+            help them identify colors with live prediction using our detection
+            tool. Users can scan any object and get results stating what color it
+            is in the form of text.
+          </p>
+        </div>
+
+        <div class="model-btn">
+          <p>
+            To use the model, click here!
+            <button><a href="">Go to model</a></button>
+          </p>
+        </div>
+      </main>
+    </div>
+
+    <div class="instructions" id="instructions">
+      <h2>How it works:</h2>
+      <div class="rules">
+        <p>(a) Upload or Capture an Image.</p>
+        <p>(b) The tool analyses the Colours.</p>
+        <p>(c) The tool displays the name of the Colours in the form of text.</p>
+      </div>
+    </div>
+
+    <footer>
+      <div class="footer">
+        <p>PROJECT BY TEAM VECTORS</p>
+      </div>
+    </footer>
+
+    <script>
+      const toggleBtn = document.querySelector('.toggle-btn');
+      const body = document.body;
+      const instructions = document.getElementById("instructions");
+
+      const darkMode = localStorage.getItem('dark-mode');
+      if (darkMode === 'enabled') {
+        body.classList.add('dark-mode');
+        toggleBtn.textContent = '☀️ Light Mode';
+      }
+
+      toggleBtn.addEventListener('click', () => {
+        body.classList.toggle('dark-mode');
+        if (body.classList.contains('dark-mode')) {
+          toggleBtn.textContent = '☀️ Light Mode';
+          localStorage.setItem('dark-mode', 'enabled');
+        } else {
+          toggleBtn.textContent = '🌙 Dark Mode';
+          localStorage.setItem('dark-mode', 'disabled');
+        }
+      });
+
+      function toggleInstructions() {
+        instructions.classList.toggle("show");
+      }
+    </script>
+  </body>
+</html>
